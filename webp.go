@@ -1,11 +1,19 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"os"
+	"runtime"
+	"webp-sh/config"
 	"webp-sh/handler"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/etag"
+	"github.com/gofiber/fiber/v2/middleware/favicon"
+	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/recover"
+	log "github.com/sirupsen/logrus"
 )
 
 var app = fiber.New(fiber.Config{
@@ -18,9 +26,67 @@ var app = fiber.New(fiber.Config{
 	DisableKeepalive:      false, // Disable keep-alive connections, the server will close incoming connections after sending the first response to the client
 })
 
+func setupLogger() {
+	log.SetOutput(os.Stdout)
+	log.SetReportCaller(true)
+	formatter := &log.TextFormatter{
+		EnvironmentOverrideColors: true,
+		FullTimestamp:             true,
+		TimestampFormat:           config.TimeDateFormat,
+		CallerPrettyfier: func(f *runtime.Frame) (string, string) {
+			return fmt.Sprintf("[%d:%s]", f.Line, f.Function), ""
+		},
+	}
+	log.SetFormatter(formatter)
+	log.SetLevel(log.InfoLevel)
+
+	// fiber logger format
+	app.Use(logger.New(logger.Config{
+		Format:     config.FiberLogFormat,
+		TimeFormat: config.TimeDateFormat,
+	}))
+	app.Use(recover.New(recover.Config{}))
+
+	app.Use(favicon.New(favicon.Config{
+		File: "./logo.avif",
+		URL:  "/favicon.ico",
+	}))
+
+	fmt.Println("Allowed file types as source:", config.Config.AllowedTypes)
+	fmt.Println("Convert to WebP Enabled:", config.Config.EnableWebP)
+	fmt.Println("Convert to AVIF Enabled:", config.Config.EnableAVIF)
+	fmt.Println("Convert to JXL Enabled:", config.Config.EnableJXL)
+}
+
+func init() {
+	// Our banner
+	banner := fmt.Sprintf(`
+		▌ ▌   ▌  ▛▀▖ ▞▀▖                ▞▀▖
+		▌▖▌▞▀▖▛▀▖▙▄▘ ▚▄ ▞▀▖▙▀▖▌ ▌▞▀▖▙▀▖ ▌▄▖▞▀▖
+		▙▚▌▛▀ ▌ ▌▌   ▖ ▌▛▀ ▌  ▐▐ ▛▀ ▌   ▌ ▌▌ ▌
+		▘ ▘▝▀▘▀▀ ▘   ▝▀ ▝▀▘▘   ▘ ▝▀▘▘   ▝▀ ▝▀
+		
+		WebP Server Go - v%s
+		Developed by WebP Server team. https://github.com/webp-sh`, config.Version)
+	// main init is the last one to be called
+	flag.Parse()
+	// process cli params
+	if config.DumpConfig {
+		fmt.Println(config.SampleConfig)
+		os.Exit(0)
+	}
+	if config.ShowVersion {
+		fmt.Printf("\n %c[1;32m%s%c[0m\n\n", 0x1B, banner+"", 0x1B)
+		os.Exit(0)
+	}
+	config.LoadConfig()
+	fmt.Printf("\n %c[1;32m%s%c[0m\n\n", 0x1B, banner, 0x1B)
+	setupLogger()
+}
+
 func main() {
 	fmt.Println("Webp start ...")
-	listenAddress := "127.0.0.1:9000"
+	listenAddress := config.Config.Host + ":" + config.Config.Port
 	app.Use(etag.New(etag.Config{
 		Weak: true,
 	}))
