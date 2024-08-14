@@ -173,3 +173,11 @@ func parseImgMap(imgMap map[string]string) map[string]string {
 	}
 	return parsedImgMap
 }
+
+// ExtraParams struct
+type ExtraParams struct {
+	Width     int // in px
+	Height    int // in px
+	MaxWidth  int // in px
+	MaxHeight int // in px
+}

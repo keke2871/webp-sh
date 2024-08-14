@@ -92,6 +92,7 @@ func main() {
 	}))
 
 	app.Get("/healthz", handler.Healthz)
+		app.Get("/*", handler.Convert)
 
 	fmt.Printf("WebP Server Go is Running on http://%s\n", listenAddress)
 
