@@ -57,6 +57,13 @@ var (
 	RemoteCache    *cache.Cache
 )
 
+// MetaFile struct
+type MetaFile struct {
+	Id       string `json:"id"`       // hash of below path️, also json file name id.webp
+	Path     string `json:"path"`     // local: path with width and height, proxy: full url
+	Checksum string `json:"checksum"` // hash of original file or hash(etag). Use this to identify changes
+}
+
 // WebpConfig struct
 type WebpConfig struct {
 	Host          string            `json:"HOST"`
