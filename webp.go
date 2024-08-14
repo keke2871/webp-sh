@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	schedule "web-sh/schedule"
 	"webp-sh/config"
+	"webp-sh/encoder"
 	"webp-sh/handler"
+	"webp-sh/schedule"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/etag"
@@ -16,6 +19,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// https://docs.gofiber.io/api/fiber
 var app = fiber.New(fiber.Config{
 	ServerHeader:          "WebP Server Go",
 	AppName:               "WebP Server Go",
@@ -85,7 +89,13 @@ func init() {
 }
 
 func main() {
-	fmt.Println("Webp start ...")
+	if config.Config.MaxCacheSize != 0 {
+		go schedule.CleanCache()
+	}
+	if config.Prefetch {
+		go encoder.PrefetchImages()
+	}
+
 	listenAddress := config.Config.Host + ":" + config.Config.Port
 	app.Use(etag.New(etag.Config{
 		Weak: true,
