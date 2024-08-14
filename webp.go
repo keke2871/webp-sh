@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"runtime"
-	schedule "web-sh/schedule"
 	"webp-sh/config"
 	"webp-sh/encoder"
 	"webp-sh/handler"

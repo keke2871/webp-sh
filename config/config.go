@@ -188,3 +188,12 @@ type ExtraParams struct {
 	MaxWidth  int // in px
 	MaxHeight int // in px
 }
+
+func switchProxyMode() {
+	matched, _ := regexp.MatchString(HttpRegexp, Config.ImgPath)
+	if matched {
+		// Enable proxy based on ImgPath should be deprecated in future versions
+		log.Warn("Enable proxy based on ImgPath will be deprecated in future versions. Use IMG_MAP config options instead")
+		ProxyMode = true
+	}
+}
