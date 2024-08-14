@@ -19,7 +19,7 @@ tools/bin
 exhaust/
 exhaust_test/
 builds/
-remote-raw/
+remote-raw
 coverage.txt
 .DS_Store
 /webp_server_go
